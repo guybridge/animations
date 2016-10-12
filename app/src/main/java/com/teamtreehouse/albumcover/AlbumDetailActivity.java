@@ -52,6 +52,11 @@ public class AlbumDetailActivity extends Activity {
         setupTransitions();
     }
 
+    private void animate()
+    {
+
+    }
+
     private Transition createTransition() {
         TransitionSet set = new TransitionSet();
         set.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
