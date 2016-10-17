@@ -83,6 +83,7 @@ public class AlbumListActivity extends Activity {
 
                         ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                                 AlbumListActivity.this, vh.albumArt, "albumArt");
+
                         startActivity(intent, options.toBundle());
                     }
                 });

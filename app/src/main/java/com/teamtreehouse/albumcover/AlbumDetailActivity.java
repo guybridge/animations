@@ -1,5 +1,9 @@
 package com.teamtreehouse.albumcover;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -17,6 +21,8 @@ import android.transition.TransitionSet;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
@@ -50,10 +56,44 @@ public class AlbumDetailActivity extends Activity {
         ButterKnife.bind(this);
         populate();
         setupTransitions();
+
     }
 
     private void animate()
     {
+
+//        ObjectAnimator scalex = ObjectAnimator.ofFloat(fab, "scaleX", 0, 1);
+//        ObjectAnimator scaley = ObjectAnimator.ofFloat(fab, "scaley", 0, 1);
+//        AnimatorSet scaleFab = new AnimatorSet();
+//        scaleFab.playTogether(scalex, scaley);
+
+        Animator scaleFab = AnimatorInflater.loadAnimator(this, R.animator.scale);
+        scaleFab.setTarget(fab);
+
+        int titleStartValue = titlePanel.getTop();
+        int titleEndValue = titlePanel.getBottom();
+        ObjectAnimator animatorStart = ObjectAnimator.ofInt(titlePanel, "bottom", titleStartValue, titleEndValue);
+        animatorStart.setInterpolator(new AccelerateDecelerateInterpolator());
+
+        int trackStartValue = trackPanel.getTop();
+        int trackEndValue = trackPanel.getBottom();
+        ObjectAnimator animatorTrack = ObjectAnimator.ofInt(trackPanel, "bottom", trackStartValue, trackEndValue);
+        animatorTrack.setInterpolator(new DecelerateInterpolator());
+
+        titlePanel.setBottom(titleStartValue);
+        trackPanel.setBottom(titleStartValue);
+        fab.setScaleX(0);
+        fab.setScaleY(0);
+
+//        animatorStart.setDuration(1000);
+//        animatorTrack.setDuration(1000);
+//        animatorStart.setStartDelay(1000);
+
+        AnimatorSet set = new AnimatorSet();
+        set.playSequentially(animatorStart, animatorTrack, scaleFab);
+        set.start();
+
+
 
     }
 
@@ -87,10 +127,13 @@ public class AlbumDetailActivity extends Activity {
         fab.setVisibility(View.INVISIBLE);
         titlePanel.setVisibility(View.INVISIBLE);
         trackPanel.setVisibility(View.INVISIBLE);
+
+        animate();
     }
 
     @OnClick(R.id.track_panel)
-    public void onTrackPanelClicked(View view) {
+    public void onTrackPanelClicked(View view)
+    {
         if (mCurrentScene == mExpandedScene) {
             mCurrentScene = mCollapsedScene;
         }
@@ -98,13 +141,48 @@ public class AlbumDetailActivity extends Activity {
             mCurrentScene = mExpandedScene;
         }
         mTransitionManager.transitionTo(mCurrentScene);
+
+
+
+
+
+    }
+
+    private void setupTransition()
+    {
+
+        ViewGroup transitionRoot = detailContainer;
+        Scene expandedScene = Scene.getSceneForLayout(transitionRoot,
+                R.layout.activity_album_detail_expanded, this);
+
+        expandedScene.setEnterAction(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                ButterKnife.bind(AlbumDetailActivity.this);
+                populate();
+            }
+        });
+
+        TransitionSet transitionSet = new TransitionSet();
+        transitionSet.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
+        ChangeBounds changeBounds = new ChangeBounds();
+        changeBounds.setDuration(200);
+        transitionSet.addTransition(changeBounds);
+        Fade fadeLyrics = new Fade();
+        fadeLyrics.addTarget(R.id.lyrics);
+        fadeLyrics.setDuration(150);
+        transitionSet.addTransition(fadeLyrics);
     }
 
     private void setupTransitions() {
-//        Slide slide = new Slide(Gravity.BOTTOM);
-//        slide.excludeTarget(android.R.id.statusBarBackground, true);
-//        getWindow().setEnterTransition(slide);
-//        getWindow().setSharedElementsUseOverlay(false);
+        Slide slide = new Slide(Gravity.RIGHT);
+        slide.excludeTarget(android.R.id.statusBarBackground, true);
+        getWindow().setEnterTransition(slide);
+        getWindow().setSharedElementsUseOverlay(false);
+
+
 
         mTransitionManager = new TransitionManager();
         ViewGroup transitionRoot = detailContainer;
@@ -122,6 +200,7 @@ public class AlbumDetailActivity extends Activity {
             }
         });
 
+        // Expanded Scene
         TransitionSet expandTransitionSet = new TransitionSet();
         expandTransitionSet.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
         ChangeBounds changeBounds = new ChangeBounds();
